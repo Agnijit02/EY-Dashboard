@@ -2,15 +2,24 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { ArrowRight, Building, CheckCircle2, Clock, Globe, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { RegionalPerformanceData } from '../dashboard.types';
+import type { ProjectRegion } from '../../projects/projects.types';
 import { useProjectsStore } from '../../../store/projectsStore';
 
 interface RegionalPerformanceProps {
   data: RegionalPerformanceData[];
 }
 
-function CustomRegionalTooltip({ active, payload, onNavigate }: any) {
+interface CustomRegionalTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    payload: RegionalPerformanceData;
+  }>;
+  onNavigate?: (regionName: string) => void;
+}
+
+function CustomRegionalTooltip({ active, payload, onNavigate }: CustomRegionalTooltipProps) {
   if (!active || !payload || !payload.length) return null;
-  const regionData = payload[0]?.payload as RegionalPerformanceData | undefined;
+  const regionData = payload[0]?.payload;
   if (!regionData) return null;
 
   const projects = regionData.projects || [];
@@ -38,112 +47,102 @@ function CustomRegionalTooltip({ active, payload, onNavigate }: any) {
             </div>
             <div>
               <h4 className="text-sm font-extrabold tracking-tight text-white">{regionData.region} Region</h4>
-              <p className="text-[11px] text-slate-400 font-medium">{projects.length} Total Projects</p>
+              <p className="text-[11px] font-medium text-slate-400">
+                {regionData.projectCount || projects.length} Active Portfolio Engagements
+              </p>
             </div>
           </div>
 
-          <div className="text-right">
-            <span className="text-xs font-mono font-extrabold text-[#FFE600]">₹{regionData.revenue} Cr</span>
-            <p className="text-[10px] text-slate-400">Total Portfolio</p>
-          </div>
+          <span className="rounded-lg bg-emerald-950/80 px-2 py-0.5 text-[11px] font-bold text-emerald-400 border border-emerald-800/60">
+            +{regionData.growth}% YoY
+          </span>
         </div>
 
-        {/* Quick Status Chips */}
-        <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[10px] font-semibold">
-          {activeCount > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-md bg-sky-500/20 px-2 py-0.5 text-sky-300 border border-sky-500/30">
-              <Clock className="h-3 w-3" />
-              {activeCount} Active
-            </span>
-          )}
-          {completedCount > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/20 px-2 py-0.5 text-emerald-300 border border-emerald-500/30">
-              <CheckCircle2 className="h-3 w-3" />
-              {completedCount} Done
-            </span>
-          )}
-          {atRiskCount > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/20 px-2 py-0.5 text-amber-300 border border-amber-500/30">
-              <ShieldAlert className="h-3 w-3" />
-              {atRiskCount} At-Risk
-            </span>
-          )}
-          {delayedCount > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-md bg-rose-500/20 px-2 py-0.5 text-rose-300 border border-rose-500/30">
-              <ShieldAlert className="h-3 w-3" />
-              {delayedCount} Delayed
-            </span>
-          )}
+        <div className="mt-3 flex items-baseline justify-between rounded-xl bg-slate-900/80 px-3 py-2 border border-slate-800">
+          <span className="text-xs font-semibold text-slate-400">Total Regional Revenue</span>
+          <span className="text-base font-black tracking-tight text-[#FFE600]">₹{regionData.revenue} Cr</span>
         </div>
       </div>
 
-      {/* Top 3 Projects List */}
-      <div className="mt-3">
-        <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-          <span>Featured Projects ({topProjects.length} of {projects.length})</span>
-          <span className="text-[#FFE600]">Budget / Status</span>
+      {/* Project Status Summary Pills */}
+      <div className="my-3 grid grid-cols-4 gap-1.5 text-center text-[10px] font-semibold">
+        <div className="rounded-lg bg-emerald-950/40 p-1.5 text-emerald-400 border border-emerald-900/40">
+          <span className="block font-black text-xs">{completedCount}</span>
+          <span className="text-[9px] text-slate-400">Done</span>
+        </div>
+        <div className="rounded-lg bg-blue-950/40 p-1.5 text-blue-400 border border-blue-900/40">
+          <span className="block font-black text-xs">{activeCount}</span>
+          <span className="text-[9px] text-slate-400">Active</span>
+        </div>
+        <div className="rounded-lg bg-amber-950/40 p-1.5 text-amber-400 border border-amber-900/40">
+          <span className="block font-black text-xs">{atRiskCount}</span>
+          <span className="text-[9px] text-slate-400">At Risk</span>
+        </div>
+        <div className="rounded-lg bg-rose-950/40 p-1.5 text-rose-400 border border-rose-900/40">
+          <span className="block font-black text-xs">{delayedCount}</span>
+          <span className="text-[9px] text-slate-400">Delayed</span>
+        </div>
+      </div>
+
+      {/* Top 3 Featured Projects */}
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
+          <span>Top Featured Projects ({topProjects.length})</span>
+          <span>Budget</span>
         </div>
 
-        <div className="mt-2 space-y-1.5">
-          {topProjects.length === 0 ? (
-            <p className="py-2 text-center text-xs italic text-slate-500">No projects matching active filters.</p>
-          ) : (
-            topProjects.map((p) => {
-              const statusColor =
-                p.status === 'completed'
-                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                  : p.status === 'active'
-                  ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
-                  : p.status === 'at-risk'
-                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                  : 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+        <div className="space-y-1.5">
+          {topProjects.map((p) => {
+            const isDone = p.status === 'completed';
+            const isWarn = p.status === 'at-risk' || p.status === 'delayed';
 
-              return (
-                <div
-                  key={p.id}
-                  className="rounded-xl border border-white/[0.08] bg-white/[0.04] p-2.5 text-xs transition-colors hover:bg-white/[0.08]"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="truncate font-bold text-white">{p.name}</span>
-                        <span className="font-mono text-[10px] text-slate-400">({p.code})</span>
-                      </div>
-                      <p className="mt-0.5 flex items-center gap-1 text-[11px] text-slate-400">
-                        <Building className="h-3 w-3 shrink-0 text-slate-500" />
-                        <span className="truncate">{p.client}</span>
-                      </p>
-                    </div>
-
-                    <div className="shrink-0 text-right">
-                      <p className="font-bold text-[#FFE600]">₹{p.budget} Cr</p>
-                      <span className={`mt-0.5 inline-block rounded-md border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${statusColor}`}>
-                        {p.status} ({p.progress}%)
-                      </span>
-                    </div>
+            return (
+              <div
+                key={p.id}
+                className="flex items-center justify-between rounded-xl bg-slate-900/70 p-2.5 transition-colors border border-slate-800/80 hover:border-slate-700"
+              >
+                <div className="min-w-0 pr-2">
+                  <div className="flex items-center gap-1.5">
+                    {isDone ? (
+                      <CheckCircle2 className="h-3 w-3 text-emerald-400 shrink-0" />
+                    ) : isWarn ? (
+                      <ShieldAlert className="h-3 w-3 text-amber-400 shrink-0" />
+                    ) : (
+                      <Clock className="h-3 w-3 text-blue-400 shrink-0" />
+                    )}
+                    <p className="truncate text-xs font-bold text-slate-200">{p.name}</p>
+                  </div>
+                  <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-slate-400">
+                    <Building className="h-2.5 w-2.5 text-slate-500" />
+                    <span className="truncate max-w-[120px]">{p.client}</span>
+                    <span>•</span>
+                    <span className="capitalize text-slate-300">{p.status}</span>
                   </div>
                 </div>
-              );
-            })
-          )}
+
+                <div className="text-right shrink-0">
+                  <p className="text-xs font-black text-[#FFE600]">₹{p.budget} Cr</p>
+                  <p className="text-[9px] font-semibold text-slate-400">{p.progress}% done</p>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
-        {/* More Projects Callout & Redirect Link */}
-        {remainingCount > 0 ? (
-          <div className="mt-3 rounded-xl border border-[#FFE600]/30 bg-[#FFE600]/10 p-2.5 text-center">
-            <p className="text-[11px] font-semibold text-slate-200">
-              + <strong className="text-[#FFE600]">{remainingCount} more {remainingCount === 1 ? 'project' : 'projects'}</strong> in {regionData.region} (₹{remainingBudget} Cr)
+        {/* Breakdown of Remaining Projects */}
+        {remainingCount > 0 && (
+          <div className="rounded-xl border border-dashed border-slate-700/80 bg-slate-900/40 p-2.5 text-center mt-2">
+            <p className="text-xs font-bold text-slate-300">
+              + {remainingCount} more projects in {regionData.region} (₹{remainingBudget} Cr)
             </p>
-            <button
-              type="button"
-              onClick={() => onNavigate(regionData.region)}
-              className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#FFE600] py-2 text-xs font-extrabold text-slate-950 shadow-md transition-all hover:bg-yellow-400 active:scale-[0.98] cursor-pointer"
-            >
-              <span>View all {projects.length} projects in {regionData.region}</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </button>
+            <p className="text-[10px] text-slate-400 mt-0.5">
+              Completes total regional portfolio of ₹{regionData.revenue} Cr
+            </p>
           </div>
-        ) : (
+        )}
+
+        {/* View All Redirection Action */}
+        {onNavigate && (
           <button
             type="button"
             onClick={() => onNavigate(regionData.region)}
@@ -163,8 +162,8 @@ function RegionalPerformance({ data }: RegionalPerformanceProps) {
   const maxRevenue = Math.max(...data.map((d) => d.revenue), 10);
 
   const handleNavigateToRegion = (regionName: string) => {
-    const regionLower = regionName.toLowerCase();
-    useProjectsStore.getState().setRegion(regionLower as any);
+    const regionLower = regionName.toLowerCase() as ProjectRegion;
+    useProjectsStore.getState().setRegion(regionLower);
     navigate(`/projects?region=${regionLower}`);
   };
 
@@ -226,14 +225,14 @@ function RegionalPerformance({ data }: RegionalPerformanceProps) {
                 barSize={22}
                 isAnimationActive={false}
                 className="cursor-pointer"
-                onClick={(entry: any) => {
+                onClick={(entry: RegionalPerformanceData) => {
                   if (entry && entry.region) {
                     handleNavigateToRegion(entry.region);
                   }
                 }}
                 label={{
                   position: 'right',
-                  formatter: (v: any) => ` ₹${v} Cr`,
+                  formatter: (v: number | string) => ` ₹${v} Cr`,
                   fontSize: 11,
                   fill: '#1E293B',
                   fontWeight: 700,

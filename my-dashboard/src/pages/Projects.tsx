@@ -33,7 +33,7 @@ function Projects() {
 	useEffect(() => {
 		const regionParam = searchParams.get('region');
 		if (regionParam && ['india', 'europe', 'americas', 'apac', 'all'].includes(regionParam.toLowerCase())) {
-			setRegion(regionParam.toLowerCase() as any);
+			setRegion(regionParam.toLowerCase() as ProjectRegion | 'all');
 		}
 	}, [searchParams, setRegion]);
 

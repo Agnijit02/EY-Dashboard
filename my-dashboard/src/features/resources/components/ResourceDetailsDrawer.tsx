@@ -24,7 +24,7 @@ function ResourceDetailsDrawer({ resource, onClose }: ResourceDetailsDrawerProps
 	const projectCount = resource.assignedProjects.length;
 	const skillsList = resource.skills.slice(0, 2).join(' and ') || 'Strategic Consulting';
 
-	let summaryText = '';
+	let summaryText: string;
 	if (projectCount > 0) {
 		summaryText = `This consultant is actively staffed across ${projectCount} client engagement(s), with core competencies in ${skillsList}.`;
 	} else if (resource.allocationPercentage > 0) {

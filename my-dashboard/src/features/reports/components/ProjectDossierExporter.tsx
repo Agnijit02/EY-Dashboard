@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
 	Bar,
@@ -35,29 +35,28 @@ import { risksMockData } from '../../risks/risks.mock';
 
 const COLORS = ['#FFE600', '#10B981', '#38BDF8', '#818CF8', '#F59E0B', '#EC4899'];
 
+function createExportFileName(prefix: string, code: string, extension: string): string {
+	const timestamp = Date.now();
+	return `${prefix}_${code}_${timestamp}.${extension}`;
+}
+
 function ProjectDossierExporter() {
 	const [searchParams, setSearchParams] = useSearchParams();
-	const allProjects = getProjectFinancialMetrics();
+	const allProjects = useMemo(() => getProjectFinancialMetrics(), []);
 
 	const urlProjectId = searchParams.get('projectId');
-	const defaultId = (urlProjectId && allProjects.some((p) => p.projectId === urlProjectId))
+	const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+
+	const activeProjectId = (urlProjectId && allProjects.some((p) => p.projectId === urlProjectId))
 		? urlProjectId
-		: (allProjects[0]?.projectId || '');
-
-	const [selectedProjectId, setSelectedProjectId] = useState<string>(defaultId);
-
-	useEffect(() => {
-		if (urlProjectId && urlProjectId !== selectedProjectId && allProjects.some((p) => p.projectId === urlProjectId)) {
-			setSelectedProjectId(urlProjectId);
-		}
-	}, [urlProjectId, selectedProjectId, allProjects]);
+		: selectedProjectId || allProjects[0]?.projectId || '';
 
 	const handleProjectChange = (id: string) => {
 		setSelectedProjectId(id);
 		setSearchParams({ projectId: id });
 	};
 
-	const project = allProjects.find((p) => p.projectId === selectedProjectId) || allProjects[0];
+	const project = allProjects.find((p) => p.projectId === activeProjectId) || allProjects[0];
 
 	if (!project) {
 		return null;
@@ -203,7 +202,7 @@ function ProjectDossierExporter() {
 		const url = URL.createObjectURL(blob);
 		const link = document.createElement('a');
 		link.setAttribute('href', url);
-		link.setAttribute('download', `EY_Project_Executive_Report_${project.code}_${Date.now()}.csv`);
+		link.setAttribute('download', createExportFileName('EY_Project_Executive_Report', project.code, 'csv'));
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);
@@ -228,7 +227,7 @@ function ProjectDossierExporter() {
 		const url = URL.createObjectURL(blob);
 		const link = document.createElement('a');
 		link.setAttribute('href', url);
-		link.setAttribute('download', `EY_Project_Complete_Dossier_${project.code}_${Date.now()}.json`);
+		link.setAttribute('download', createExportFileName('EY_Project_Complete_Dossier', project.code, 'json'));
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);
@@ -480,7 +479,7 @@ function ProjectDossierExporter() {
 										radius={[4, 4, 0, 0]}
 										label={{
 											position: 'top',
-											formatter: (val: any) => (Number(val) > 0 ? `₹${val}Cr` : ''),
+											formatter: (val: number | string) => (Number(val) > 0 ? `₹${val}Cr` : ''),
 											fontSize: 10,
 											fill: '#475569',
 											fontWeight: 700,

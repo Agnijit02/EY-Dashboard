@@ -40,7 +40,7 @@ export function getProjectFinancialMetrics(): ProjectFinancialMetric[] {
 		// Milestone Invoicing & AR calculations
 		const invoicedAmount = Number((revenueGenerated * (project.progress >= 95 ? 1.0 : 0.88)).toFixed(2));
 		
-		let collectionRatio = 0.80;
+		let collectionRatio: number;
 		if (paymentStatus === 'Paid') {
 			collectionRatio = project.progress >= 100 ? 0.90 : 0.82;
 		} else if (paymentStatus === 'Partially Invoiced') {

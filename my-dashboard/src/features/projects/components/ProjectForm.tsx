@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useForm, type Resolver, type SubmitHandler } from 'react-hook-form';
+import { useForm, useWatch, type Resolver, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Project } from '../projects.types';
 import { projectFormSchema } from '../projects.schema';
@@ -31,9 +31,18 @@ const DEFAULT_FORM_VALUES: ProjectFormValues = {
 	progress: 0,
 	startDate: todayIso,
 	endDate: futureIso,
-	teamSize: 5,
+	teamSize: 4,
 	description: '',
 };
+
+function generateFallbackProjectCode(): string {
+	return `PRJ-${Math.floor(1000 + Math.random() * 9000)}`;
+}
+
+function generateCleanProjectCode(projectName: string): string {
+	const cleanPrefix = projectName.replace(/[^a-zA-Z0-9]/g, '').slice(0, 4).toUpperCase();
+	return `PRJ-${cleanPrefix || 'NEW'}-${Math.floor(100 + Math.random() * 900)}`;
+}
 
 function ProjectForm({ project, isSubmitting = false, onSubmit, onCancel }: ProjectFormProps) {
 	const isEditMode = Boolean(project);
@@ -41,12 +50,12 @@ function ProjectForm({ project, isSubmitting = false, onSubmit, onCancel }: Proj
 	const {
 		register,
 		handleSubmit,
+		control,
 		setValue,
-		watch,
 		reset,
 		formState: { errors },
 	} = useForm<ProjectFormValues>({
-		resolver: zodResolver(projectFormSchema) as Resolver<ProjectFormValues>,
+		resolver: zodResolver(projectFormSchema) as unknown as Resolver<ProjectFormValues>,
 		defaultValues: project
 			? {
 					name: project.name,
@@ -66,14 +75,13 @@ function ProjectForm({ project, isSubmitting = false, onSubmit, onCancel }: Proj
 			: DEFAULT_FORM_VALUES,
 	});
 
-	const projectName = watch('name');
-	const projectCode = watch('code');
+	const projectName = useWatch({ control, name: 'name' });
+	const projectCode = useWatch({ control, name: 'code' });
 
 	// Optional helper: If code is untouched and user types name, auto-suggest clean code
 	const handleGenerateCode = () => {
 		if (projectName && !projectCode) {
-			const cleanPrefix = projectName.replace(/[^a-zA-Z0-9]/g, '').slice(0, 4).toUpperCase();
-			setValue('code', `PRJ-${cleanPrefix || 'NEW'}-${Math.floor(100 + Math.random() * 900)}`);
+			setValue('code', generateCleanProjectCode(projectName));
 		}
 	};
 
@@ -102,7 +110,7 @@ function ProjectForm({ project, isSubmitting = false, onSubmit, onCancel }: Proj
 		// Ensure robust fallback for any empty fields before emitting
 		const sanitizedValues: ProjectFormValues = {
 			...values,
-			code: values.code.trim() || `PRJ-${Math.floor(1000 + Math.random() * 9000)}`,
+			code: values.code.trim() || generateFallbackProjectCode(),
 			description: values.description?.trim() || `${values.name} strategic delivery program for ${values.client}.`,
 			startDate: values.startDate || todayIso,
 			endDate: values.endDate || futureIso,

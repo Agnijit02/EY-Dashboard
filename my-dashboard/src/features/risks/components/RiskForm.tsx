@@ -36,7 +36,7 @@ function RiskForm({ isSubmitting = false, onSubmit, onCancel }: RiskFormProps) {
 	const [probability, setProbability] = useState<number>(4);
 	const [impact, setImpact] = useState<number>(4);
 	const [owner, setOwner] = useState('Rahul Sharma');
-	const [dueDate, setDueDate] = useState(
+	const [dueDate, setDueDate] = useState(() =>
 		new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
 	);
 	const [description, setDescription] = useState('');
