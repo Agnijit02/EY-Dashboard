@@ -87,7 +87,7 @@ export function loadActivities(): ActivityData[] {
 	const initial = generateInitialActivities();
 	return initial.map((a) => ({
 		...a,
-		timestamp: formatRelativeTime(a.createdAt),
+		timestamp: formatRelativeTime(a.createdAt || new Date().toISOString()),
 	}));
 }
 

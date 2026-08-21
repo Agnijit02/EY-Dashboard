@@ -12,7 +12,7 @@ import ProjectTable from '../features/projects/components/ProjectTable';
 import ProjectsEmptyState from '../features/projects/components/ProjectsEmptyState';
 import ProjectsSkeleton from '../features/projects/components/ProjectsSkeleton';
 import type { ProjectFormValues } from '../features/projects/projects.schema';
-import type { Project } from '../features/projects/projects.types';
+import type { Project, ProjectRegion } from '../features/projects/projects.types';
 import { useAuth } from '../hooks/useAuth';
 import { useProjectMutations } from '../hooks/useProjectMutations';
 import { useProjectsQuery } from '../hooks/useProjectsQuery';

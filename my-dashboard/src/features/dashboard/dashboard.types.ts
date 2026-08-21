@@ -53,6 +53,7 @@ export interface ActivityData {
 	title: string;
 	description: string;
 	timestamp: string;
+	createdAt?: string;
 	type: 'project' | 'client' | 'risk' | 'report';
 }
 

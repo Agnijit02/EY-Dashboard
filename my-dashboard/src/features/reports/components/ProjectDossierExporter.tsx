@@ -479,7 +479,7 @@ function ProjectDossierExporter() {
 										radius={[4, 4, 0, 0]}
 										label={{
 											position: 'top',
-											formatter: (val: number | string) => (Number(val) > 0 ? `₹${val}Cr` : ''),
+											formatter: (val) => (Number(val) > 0 ? `₹${val}Cr` : ''),
 											fontSize: 10,
 											fill: '#475569',
 											fontWeight: 700,

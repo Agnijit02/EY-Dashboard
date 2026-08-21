@@ -225,14 +225,14 @@ function RegionalPerformance({ data }: RegionalPerformanceProps) {
                 barSize={22}
                 isAnimationActive={false}
                 className="cursor-pointer"
-                onClick={(entry: RegionalPerformanceData) => {
-                  if (entry && entry.region) {
+                onClick={(entry) => {
+                  if (entry && typeof entry === 'object' && 'region' in entry && typeof entry.region === 'string') {
                     handleNavigateToRegion(entry.region);
                   }
                 }}
                 label={{
                   position: 'right',
-                  formatter: (v: number | string) => ` ₹${v} Cr`,
+                  formatter: (v) => (v !== undefined && v !== null ? ` ₹${String(v)} Cr` : ''),
                   fontSize: 11,
                   fill: '#1E293B',
                   fontWeight: 700,
